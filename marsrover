@@ -1,0 +1,118 @@
+class Command:
+    def execute(self, rover):
+        pass
+
+class MoveCommand(Command):
+    def execute(self, rover):
+        rover.move()
+
+class LeftTurnCommand(Command):
+    def execute(self, rover):
+        rover.turn_left()
+
+class RightTurnCommand(Command):
+    def execute(self, rover):
+        rover.turn_right()
+
+class GridComponent:
+    def move(self):
+        pass
+
+    def detect_obstacle(self):
+        pass
+
+class Grid(GridComponent):
+    def __init__(self, size):
+        self.size = size
+        self.rover = None
+        self.obstacles = []
+
+    def move(self):
+        if self.rover:
+            self.rover.move()
+
+    def detect_obstacle(self):
+        if self.rover:
+            return self.rover.detect_obstacle()
+
+class Rover:
+    def __init__(self, starting_position, grid, obstacles):
+        self.position = starting_position
+        self.grid = grid
+        self.obstacles = obstacles
+
+    def move(self):
+        x, y, direction = self.position
+        new_x, new_y = x, y
+
+        if direction == 'N':
+            new_y += 1
+        elif direction == 'S':
+            new_y -= 1
+        elif direction == 'E':
+            new_x += 1
+        elif direction == 'W':
+            new_x -= 1
+
+        if (0 <= new_x < self.grid.size[0]) and (0 <= new_y < self.grid.size[1]) and (new_x, new_y) not in self.obstacles:
+            self.position = (new_x, new_y, direction)
+
+    def turn_left(self):
+        x, y, direction = self.position
+        if direction == 'N':
+            self.position = (x, y, 'W')
+        elif direction == 'S':
+            self.position = (x, y, 'E')
+        elif direction == 'E':
+            self.position = (x, y, 'N')
+        elif direction == 'W':
+            self.position = (x, y, 'S')
+
+    def turn_right(self):
+        x, y, direction = self.position
+        if direction == 'N':
+            self.position = (x, y, 'E')
+        elif direction == 'S':
+            self.position = (x, y, 'W')
+        elif direction == 'E':
+            self.position = (x, y, 'S')
+        elif direction == 'W':
+            self.position = (x, y, 'N')
+
+    def detect_obstacle(self):
+        return self.position[:2] in self.obstacles
+
+    def get_position(self):
+        return self.position
+
+    def generate_status_report(self):
+        x, y, direction = self.position
+        obstacle_detected = self.detect_obstacle()
+
+        if not obstacle_detected:
+            return f"Rover is at ({x},{y}) facing {direction}. No obstacles detected."
+        else:
+            return f"Rover is at ({x},{y}) facing {direction}. Obstacle detected."
+
+# Create a grid, rover, and execute commands
+grid = Grid(size=(10, 10))
+rover = Rover(starting_position=(0, 0, 'N'), grid=grid, obstacles=[(2, 2), (3, 5)])
+
+commands = ['M', 'M', 'R', 'M', 'L', 'M']
+for command_char in commands:
+    if command_char == 'M':
+        command = MoveCommand()
+    elif command_char == 'L':
+        command = LeftTurnCommand()
+    elif command_char == 'R':
+        command = RightTurnCommand()
+    else:
+        continue
+
+    command.execute(rover)
+
+final_position = rover.get_position()
+status_report = rover.generate_status_report()
+
+print(f"Final Position: {final_position}")
+print(f"Status Report: {status_report}")
